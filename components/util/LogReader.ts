@@ -67,30 +67,30 @@ export function parseLog(log: string): Log {
   let numInitialGoals: number     = getNumInitialGoals(log)
   let testCriteria:    string[]   = getTestCriterias(log)
   let goals :          GoalsForIteration[] = getGoals(log)
+  let initialPopulation: string[] = []
 
-  let [initalPopulation, testCases] : [string[], TestCase[]] = getInitialPopulation(log)
+  let [init, testCases] : [string[], TestCase[]] = getInitialPopulation(log)
+  init.forEach((st: string) => {
+    if(st.length > 0)
+      initialPopulation.push(st)
+  })
+
   let popInIt: PopulationInIteration[] =  parsePopulations(log, testCases)
   parseCrossovers(log, testCases)
   parseGoalsForIndividuals(log, testCases)
 
   let iterations: Iteration[] = []
 
-  for(let it in popInIt) {
+  popInIt.forEach((it) => {
     let  iterationGoals = goals.find((g) => g.num == it.num)
 
     let i: Iteration = {
-      num:             0,
+      num:             it.num,
       numCoveredGoals: 0,
       numTargetGoals:  0,
       targetGoals:     [],
       coveredGoals:    [],
-      population:      [] 
-    }
-    if(it.num) {
-      i.num = it.num
-    }
-    if(it.population) {
-      i.population = it.population
+      population:      it.population 
     }
     if(iterationGoals?.numCoveredGoals) {
       i.numCoveredGoals = iterationGoals.numCoveredGoals
@@ -106,14 +106,14 @@ export function parseLog(log: string): Log {
     }
 
     iterations.push(i)
-  }
+  })
 
   return {
     seed:              seed, 
     numGoals:          numGoals,
     numInitialGoals:   numInitialGoals,
     testCriteria:      testCriteria,
-    initialPopulation: initalPopulation,
+    initialPopulation: initialPopulation,
     iterations:        iterations,
     testCases:         testCases
   }
@@ -175,14 +175,15 @@ function getInitialPopulation(log: string):  [string[], TestCase[]] {
 }
 
 function parsePopulations(log: string, testCases: TestCase[]): PopulationInIteration[] {
-  const reg: RegExp = /(?<="population": ){"iteration": (.*\n(?!] }\n))+}\n] }/g
-  const popMatch: RegExp = /(?<=popStart)(.*\n)*](?=popEnd)/g
+  const reg: RegExp = /(?<="population": ){"iteration": (.*\n(?!] }\n))+} }\n]/g
+  const popMatch: RegExp = /(?<=popStart)(.*\n)*]/g
 
   let popInIt:   PopulationInIteration[] = []
 
+
   log.match(reg)?.forEach((pop) => {
     let num = getIterationForPopulation(pop)
-
+  
     pop.match(popMatch)?.forEach((p) => {
       let individuals = extractIndividuals(p)
       let ids         = individuals.map((i) => i.id)
@@ -204,7 +205,7 @@ function getIterationForPopulation(population: string): number {
   let num =  population.match(/(?<="iteration":) [0-9]*/g)
   if(num) {
     return +num[0]
-  }
+  } 
   console.warn('No iteration number found')
   return -1
 }
@@ -293,24 +294,25 @@ function extractIndividuals(population: string): TestCase[] {
 
   if(matches){
     return matches.map(((chromosome) => {
-      return {
+      let retval =  {
         id:       getId(chromosome),
         rank:     getRank(chromosome),
         fitness:  getFitness(chromosome),
         distance: getDistance(chromosome),
         code:     getCode(chromosome)
       }
-    }))
+      return retval
+    })).filter((chr) => chr.id != '')
   }
   console.warn('No population found for string: ' + population + '\n -- returning []')
   return []
 }
 
 function getId(chromosome: string): string {
-  const reg: RegExp = /(?<="id": ")[^"]*/  
+  const reg: RegExp = /(?<="id": )(.(?!["|,]))*./ 
   let matches = chromosome.match(reg)
   if(matches) {
-    return matches[0]
+    return matches[0].replace('"', '')
   }
   return ''
 }
