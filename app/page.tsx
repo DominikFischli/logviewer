@@ -5,7 +5,7 @@ import { Log, loadText, parseLog } from "@/components/util/LogReader"
 export default async function Home() {
   return (
     <>
-      <div className="flex flex-col h-screen w-screen">
+      <div className="w-screen">
         <EvolutionInfoCard
           seed={log.seed}
           numGoals={log.numGoals}
