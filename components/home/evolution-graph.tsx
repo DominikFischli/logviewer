@@ -31,7 +31,7 @@ export default function EvolutionGraph({log}: {
         {iterationsGraph.map((node) => (
           <rect
             x={node.gridx}
-            y={node.gridy*1.5}
+            y={node.gridy}
             width={20}
             height={node.node.size*1.2}
             />
