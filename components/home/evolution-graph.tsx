@@ -15,8 +15,7 @@ export default function EvolutionGraph({log}: {
 
   useLayoutEffect(() => {
     setWidth(ref.current.offsetWidth);
-    //setHeight(ref.current.offsetHeight);
-    //setHeight(2000)
+    setHeight(iterationsGraph.length*1.2)
     setGraphSize(iterationsGraph, width, height)
   }, []);
 

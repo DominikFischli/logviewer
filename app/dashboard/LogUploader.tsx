@@ -10,7 +10,6 @@ const LogUploader = () => {
     if (e.target.files) {
       setFile(e.target.files[0])
     }
-    console.log(file)
   }
 
   const handleConfirm = () => {

@@ -1,4 +1,5 @@
 import { promises as fs } from 'fs';
+import { argv0 } from 'process';
 
 export type Log = {
   seed:              number
@@ -11,12 +12,12 @@ export type Log = {
 }
 
 export type Iteration = {
-  num:             number
-  numCoveredGoals: number
-  numTargetGoals:  number
-  targetGoals:     string[]
-  coveredGoals:    string[]
-  population:      string[] // ids
+  num:              number
+  numCoveredGoals:  number
+  numUncoveredGoals:number
+  targetGoals:      string[]
+  coveredGoals:     string[]
+  population:       string[] // ids
   //archive:         string[] // ids
 }
 
@@ -26,11 +27,11 @@ type ArchiveForIteration = {
 }
 
 type GoalsForIteration = {
-  num:             number
-  numCoveredGoals: number
-  numTargetGoals:  number
-  targetGoals:     string[]
-  coveredGoals:    string[]
+  num:              number
+  numCoveredGoals:  number
+  numUncoveredGoals:number
+  targetGoals:      string[]
+  coveredGoals:     string[]
 }
 
 type PopulationInIteration = {
@@ -47,7 +48,7 @@ export type TestCase = {
   parent1?: string
   parent2?: string
   mutated?: boolean
-  goals?:   {
+  goals:   {
     name:    string
     fitness: number
   }[]
@@ -60,7 +61,7 @@ export async function loadText(path: string): Promise<string> {
 export function parseLog(log: string): Log {
   // uses Test criteria: and * as delimiters
 
-  log.replaceAll(/\[Progress:.*/g, '') // Remove Progress bars
+  log.replaceAll(/(?=\[Progress:)(.(?!Cov:))*(.(?<!]))*]/g, '') // Remove Progress bars
 
   let seed:            number     = getSeed(log)
   let numGoals:        number     = getNumGoals(log)
@@ -87,7 +88,7 @@ export function parseLog(log: string): Log {
     let i: Iteration = {
       num:             it.num,
       numCoveredGoals: 0,
-      numTargetGoals:  0,
+      numUncoveredGoals:  0,
       targetGoals:     [],
       coveredGoals:    [],
       population:      it.population 
@@ -95,8 +96,8 @@ export function parseLog(log: string): Log {
     if(iterationGoals?.numCoveredGoals) {
       i.numCoveredGoals = iterationGoals.numCoveredGoals
     }
-    if(iterationGoals?.numTargetGoals) {
-      i.numTargetGoals = iterationGoals.numTargetGoals
+    if(iterationGoals?.numUncoveredGoals) {
+      i.numUncoveredGoals = iterationGoals.numUncoveredGoals
     }
     if(iterationGoals?.targetGoals) {
       i.targetGoals = iterationGoals.targetGoals
@@ -239,32 +240,44 @@ function parseCrossovers(log: string, population: TestCase[]): void {
 }
 
 function getGoals(log: string): GoalsForIteration[] {
+  log.replace('\t', '')
   let goals = log.match(/(?<="Goals": )[^}]*\n*}/g)
   if(!goals) {
     console.warn('No goals found')
     return [{
       num: -1,
       numCoveredGoals: 0,
-      numTargetGoals: 0,
+      numUncoveredGoals: 0,
       targetGoals: [],
       coveredGoals: []
     }]
   }
   let result: GoalsForIteration[] = []
 
-  for(let goal in goals) {
-    let g = JSON.parse(goal)
+  goals.forEach((goalstring) => {
+    let num:                number = 0
+    let numCoveredGoals:    number = 0
+    let numUncoveredGoals:  number = 0
+    let targetGoals:      string[] = []
+    let coveredGoals:     string[] = []
+
+    goals = JSON.parse(goalstring)
+
     result.push({
-      num:             g['iteration'],
-      numCoveredGoals: g['covered'],
-      numTargetGoals:  g['covered targets'],
-      targetGoals:     g['current targets'],
-      coveredGoals:    g['covered targets']
+      num:              goals['iteration'],
+      numCoveredGoals:  goals['covered'],
+      numUncoveredGoals:goals['uncovered'],
+      targetGoals:      goals['current targets'],
+      coveredGoals:     goals['covered targets'] 
     })
-  }
+  })
   result.sort((a, b) => a.num - b.num)
 
   return result
+}
+
+function findInString(str: string, reg: RegExp) {
+  str.match(reg)
 }
 
 function parseGoalsForIndividuals(log: string, individuals: TestCase[]): void {
@@ -273,19 +286,21 @@ function parseGoalsForIndividuals(log: string, individuals: TestCase[]): void {
     console.warn('No individual goals found, returning')
     return
   }
-  for(let match in matches) {
+  matches.forEach((match) => {
     let goalsContent  = JSON.parse(match)
     let goalsForIndividuals = goalsContent['individuals']
 
-    for(let inds in goalsForIndividuals) {
+    goalsForIndividuals.forEach((inds) => {
       let individual = individuals.find((tc) => tc.id == inds.id)
       if(individual) {
-        for(let goal in inds.goals) {
-          individual.goals?.push({name: goal.goal, fitness: goal.fitness})
-        }
+        inds.goals.forEach((goal) => {
+          if(!individual.goals.find((g) => g.name == goal.name)) {
+            individual.goals.push({name: goal.goal, fitness: goal.fitness})
+          }
+        })
       }
-    }
-  }
+    })
+  })
 }
 
 function extractIndividuals(population: string): TestCase[] {
@@ -299,7 +314,8 @@ function extractIndividuals(population: string): TestCase[] {
         rank:     getRank(chromosome),
         fitness:  getFitness(chromosome),
         distance: getDistance(chromosome),
-        code:     getCode(chromosome)
+        code:     getCode(chromosome),
+        goals:    []
       }
       return retval
     })).filter((chr) => chr.id != '')
