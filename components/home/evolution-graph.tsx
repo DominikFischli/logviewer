@@ -35,15 +35,23 @@ export default function EvolutionGraph({nodes, textNodes, width, height}: Evolut
           </g>
         ))}
         {nodes.map((node) => (
-          <rect
-            x={node.x+25}
-            y={node.y - node.height}
-            width={16}
-            height={node.height}
-            fill={node.style.background}
-            stroke={node.style.bordercolor}
-            strokeWidth={node.style.borderthickness}
-          />
+          <g>
+            <rect
+              x={node.x+25}
+              y={node.y - node.height}
+              width={16}
+              height={node.height}
+              fill={node.style.background}
+              stroke={node.style.bordercolor}
+              strokeWidth={node.style.borderthickness}
+            />
+            <text
+              x={node.x+36}
+              y={node.y-node.height-3}
+              fontSize={8}
+              transform={'rotate(-90, '+(node.x+36)+ ', ' + (node.y -node.height-3)+')'}
+            >{node.text}</text>
+          </g>
         ))}
       </svg>
     </div>
