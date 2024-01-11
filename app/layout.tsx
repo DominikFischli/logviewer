@@ -15,7 +15,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>{children}</body>
+      <body>
+        <div className='bg-gradient-to-b from-gray-300 to-gray-400 h-max w-full'>
+          <main className={`${inter.className} antialiased`}>{children}
+          </main>
+        </div>
+      </body>
     </html>
   )
 }

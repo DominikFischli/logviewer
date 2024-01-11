@@ -1,39 +1,49 @@
 'use client'
-import {useLayoutEffect, useRef, useState} from 'react'
+import {useRef} from 'react'
 
-import { Log } from '@/components/util/LogReader'
-import { Node, NodeInstance, Link, setGraphSize, createGraph, createIterationInheritanceGraph, createNodes } from '@/components/util/EvolutionGraph'
-import { warn } from 'console'
+import { Node, TextNode } from '@/components/util/EvolutionGraph'
 
-export default function EvolutionGraph({log}: {
-  log: Log,
-}) {
+export type EvolutionGraphProps = {
+  nodes:      Node[]
+  textNodes:  TextNode[]   
+  width:      number
+  height:     number
+}
+
+export default function EvolutionGraph({nodes, textNodes, width, height}: EvolutionGraphProps) {
   const ref = useRef(null);
 
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(8000);
-
-  useLayoutEffect(() => {
-    setWidth(ref.current.offsetWidth);
-    setHeight(iterationsGraph.length*1.2)
-    setGraphSize(iterationsGraph, width, height)
-  }, []);
-
-  let nodes:            Node[]                   = createNodes(log)
-  let iterationsGraph:  NodeInstance[]           = createGraph(nodes, log.iterations).filter((node) => { return node.gridy && node.gridx})
-  let inheritanceGraph: [NodeInstance[], Link[]] = createIterationInheritanceGraph(nodes, log.iterations)
-  setGraphSize(iterationsGraph, width, height)
-
-  return (
-    <div ref={ref} className="relative rounded-xl border border-gray-200 bg-white shadow-md p-5 scroll-smooth">
-      <svg viewBox={"0 0 " + width + " " + height}>
-        {iterationsGraph.map((node) => (
-          <rect
-            x={node.gridx}
-            y={node.gridy}
-            width={20}
-            height={node.node.size*1.2}
+    return (
+    <div ref={ref} className="relative p-5 scroll-smooth">
+      <svg viewBox={"0 -80 " + width + " " + (height+80)}>
+        {textNodes.map((tn) => (
+          <g>
+            <rect
+              x={tn.x}
+              y={tn.y-15}
+              width={width}
+              height={75}
+              fill='white'
+              rx={8}
+              ry={8}
             />
+            <text
+              x={tn.x+5}
+              y={tn.y}
+              fontSize={10}
+            >{tn.text}</text>
+          </g>
+        ))}
+        {nodes.map((node) => (
+          <rect
+            x={node.x+25}
+            y={node.y - node.height}
+            width={16}
+            height={node.height}
+            fill={node.style.background}
+            stroke={node.style.bordercolor}
+            strokeWidth={node.style.borderthickness}
+          />
         ))}
       </svg>
     </div>
