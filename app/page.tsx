@@ -3,8 +3,7 @@ import { promises as fs } from 'fs';
 import { extractClass, extractFinalTestIds, parseIterations, Iteration } from '@/components/util/LogParser'
 import { populationEvolution, offspringEvolution, Node, TextNode } from '@/components/util/EvolutionGraph'
 import { EvolutionGraphProps } from "@/components/home/evolution-graph"
-
-import { TabView, TabPanel } from 'primereact/tabview'
+import Evolution from "@/components/home/evolution-graphs";
 
 let log = await getLog()
 const popProps: EvolutionGraphProps = getProps(log)
@@ -12,14 +11,7 @@ const offProps: EvolutionGraphProps = getProps(log, true)
 
 export default async function Home() {
   return (
-    <TabView className="w-screen">
-      <TabPanel header="Population Evolution" className="m-0 p-2 mb-1">
-        <EvolutionGraph {...popProps} />
-      </TabPanel>
-      <TabPanel header="Offspring Evolution" className="m-0 p-2 mb-1">
-        <EvolutionGraph {...offProps} />
-      </TabPanel>
-    </TabView>
+    <Evolution populationProps={popProps} offspringProps={offProps} />
   );
 }
 

@@ -1,6 +1,3 @@
-'use client'
-import {useRef} from 'react'
-
 import { Node, TextNode } from '@/components/util/EvolutionGraph'
 
 export type EvolutionGraphProps = {
@@ -11,10 +8,8 @@ export type EvolutionGraphProps = {
 }
 
 export default function EvolutionGraph({nodes, textNodes, width, height}: EvolutionGraphProps) {
-  const ref = useRef(null);
-
     return (
-    <div ref={ref} className="relative p-5 scroll-smooth">
+    <div className="relative p-5 scroll-smooth  ">
       <svg viewBox={"0 -80 " + width + " " + (height+80)}>
         {textNodes.map((tn) => (
           <g>
