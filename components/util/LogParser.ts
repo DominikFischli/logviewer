@@ -36,7 +36,7 @@ export type TestCase = SimpleTestCase & GeneOrigin & {
 }
 
 export function extractClass(log: string): string | null {
-  const pattern = /Current class: .*?Done/s
+  const pattern = /Going to generate test cases for class: .*?Done/s
   let match = pattern.exec(log)
   
   return match ? match[0] : ''

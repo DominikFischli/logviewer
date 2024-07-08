@@ -29,7 +29,7 @@ function getProps(logstring: string, useOffspring: boolean = false): EvolutionGr
     }
   }
 
-  let width = 1000, height = 8000
+  let width = 1000, height = 40000
 
   let [iterations, testcases] = parseIterations(classstring)
   let finalTests = extractFinalTestIds(classstring)

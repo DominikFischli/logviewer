@@ -33,7 +33,7 @@ export function populationEvolution(iterations: Iteration[], testCases: SimpleTe
 
   iterations.forEach((it, yindex) => {
     textNodes.push({
-      text: it.num == -1 ? "Initial Population" : String(it.num),
+      text: it.num == -1 ? "Initial" : String(it.num),
       x: 0,
       y: -50 + ystep*yindex
     })
@@ -62,7 +62,7 @@ export function offspringEvolution(iterations: Iteration[], testCases: SimpleTes
 
   iterations.forEach((it, yindex) => {
     textNodes.push({
-      text: it.num == -1 ? "Initial Population" : String(it.num),
+      text: it.num == -1 ? "Initial" : String(it.num),
       x: 0,
       y: -50 + ystep*yindex
     })
@@ -78,12 +78,12 @@ function evolutionLine(ids: string[], xstep: number, lineHeight: number, testCas
     let tc = testCases.find((tc) => tc.id == id)
     if(tc) {
       let isFinal: boolean = finalTestIds.includes(tc.id)
-        let bg: string     = isFinal ? 'red' : 'black'
+        let bg: string     = isFinal ? 'lightgreen' : 'black'
         let text: string   = isFinal ? tc.id.slice(0,5) : ""
 
         let style: Style = {
           borderthickness: 1,
-          background: 'black',
+          background: bg,
           bordercolor: bg
         }
         nodes.push({
